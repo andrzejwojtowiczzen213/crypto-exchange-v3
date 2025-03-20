@@ -529,15 +529,8 @@ const Checkout: React.FC = () => {
   };
 
   const handleContinue = () => {
-    navigate('/status', {
-      state: {
-        selectedAsset,
-        assetValue,
-        mode,
-        selectedCurrency,
-        fiatValue
-      }
-    });
+    // Remove navigation to status page
+    console.log('Transaction completed');
   };
 
   return (
