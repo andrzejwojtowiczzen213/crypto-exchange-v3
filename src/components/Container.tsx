@@ -194,7 +194,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
         setAssetValue(assetAmount.toFixed(4));
       }
     }
-  }, [selectedAsset, selectedCurrency]);
+  }, [selectedAsset]); // Removed selectedCurrency from dependencies
 
   const handleToggle = () => {
     setShowTokenOnTop(!showTokenOnTop);
@@ -436,7 +436,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
   const handleCurrencyClick = (currency: 'EUR' | 'USD') => {
     if (currency === 'EUR' || currency === 'USD') {
       setSelectedCurrency(currency);
-      // Calculate new fiat value based on current asset value
+      // Keep the current asset value and recalculate fiat value
       const rate = getAssetRate();
       const numericAssetValue = parseFloat(assetValue);
       if (!isNaN(numericAssetValue)) {
