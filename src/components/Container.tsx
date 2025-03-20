@@ -613,7 +613,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
     alignItems: 'center',
     gap: '8px',
     borderRadius: '8px',
-    background: '#FF0000',
+    background: '#049147',  // Changed from #FF0000 back to #049147
     color: '#FFFFFF',
     fontFamily: 'Inter, sans-serif',
     fontSize: '16px',
