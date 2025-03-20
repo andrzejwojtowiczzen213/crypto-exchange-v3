@@ -436,10 +436,12 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
   const handleCurrencyClick = (currency: 'EUR' | 'USD') => {
     if (currency === 'EUR' || currency === 'USD') {
       setSelectedCurrency(currency);
-      // Update the input value with the new currency symbol
-      const numericValue = parseFloat(inputValue.replace(/[€$,]/g, ''));
-      if (!isNaN(numericValue)) {
-        setInputValue(formatFiat(numericValue.toString()));
+      // Calculate new fiat value based on current asset value
+      const rate = getAssetRate();
+      const numericAssetValue = parseFloat(assetValue);
+      if (!isNaN(numericAssetValue)) {
+        const fiatValue = numericAssetValue * rate;
+        setInputValue(formatFiat(fiatValue.toString()));
       }
       setIsDrawerOpen(false);
     }
