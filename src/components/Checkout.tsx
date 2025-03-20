@@ -529,13 +529,14 @@ const Checkout: React.FC = () => {
   };
 
   const handleContinue = () => {
-    // Navigation to status page removed
-    console.log('Continue clicked', {
-      selectedAsset,
-      assetValue,
-      mode,
-      selectedCurrency,
-      fiatValue
+    navigate('/status', {
+      state: {
+        selectedAsset,
+        assetValue,
+        mode,
+        selectedCurrency,
+        fiatValue
+      }
     });
   };
 

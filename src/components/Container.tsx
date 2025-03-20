@@ -121,45 +121,30 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
 
   useEffect(() => {
     const shouldShowTokenOnTop = mode === 'sell';
-    if (showTokenOnTop !== shouldShowTokenOnTop) {
-      if (shouldShowTokenOnTop) {
-        // Switching to sell mode - show token input on top
-        const numericValue = parseFloat(assetValue);
-        if (!isNaN(numericValue)) {
-          setAssetValue(numericValue.toFixed(4));
-        }
-      } else {
-        // Switching to buy mode - show fiat input on top
-        const fiatValue = inputValue.replace(/[€$,]/g, '');
-        const numericValue = parseFloat(fiatValue);
-        if (!isNaN(numericValue)) {
-          setInputValue(`${selectedCurrency === 'EUR' ? '€' : '$'}${Math.round(numericValue).toLocaleString()}`);
-        }
-      }
-      setShowTokenOnTop(shouldShowTokenOnTop);
-    }
-  }, [mode]);
-
-  useEffect(() => {
-    if (showTokenOnTop) {
-      // When asset is on top, calculate fiat value
+    setShowTokenOnTop(shouldShowTokenOnTop);
+    
+    if (shouldShowTokenOnTop) {
+      // Switching to sell mode - show token input on top
       const numericValue = parseFloat(assetValue);
       if (!isNaN(numericValue)) {
+        setAssetValue(numericValue.toFixed(4));
         const rate = getAssetRate();
-        const finalValue = numericValue * rate;
-        setInputValue(`${selectedCurrency === 'EUR' ? '€' : '$'}${Math.round(finalValue).toLocaleString()}`);
+        const fiatValue = numericValue * rate;
+        setInputValue(formatFiat(fiatValue.toString()));
       }
     } else {
-      // When fiat is on top, calculate asset value
-      const numericValue = parseFloat(inputValue.replace(/[€$,]/g, ''));
+      // Switching to buy mode - show fiat input on top
+      const fiatValue = inputValue.replace(/[€$,]/g, '');
+      const numericValue = parseFloat(fiatValue);
       if (!isNaN(numericValue)) {
+        setInputValue(formatFiat(numericValue.toString()));
         const rate = getAssetRate();
         const baseValue = selectedCurrency === 'USD' ? numericValue / usdRate : numericValue;
-        const calculated = baseValue / (rate / (selectedCurrency === 'USD' ? usdRate : 1));
-        setAssetValue(calculated.toFixed(4));
+        const assetAmount = baseValue / (rate / (selectedCurrency === 'USD' ? usdRate : 1));
+        setAssetValue(assetAmount.toFixed(4));
       }
     }
-  }, [showTokenOnTop, inputValue, assetValue, selectedCurrency, selectedAsset]);
+  }, [mode]);
 
   useEffect(() => {
     if (location.state) {
@@ -218,7 +203,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
 
   const buttonStyles = {
     display: 'flex',
-    padding: '8px 10px',
+    padding: '6px 8px',
     alignItems: 'center',
     gap: '4px',
     borderRadius: '640px',
@@ -244,12 +229,6 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
     fontStyle: 'normal',
     fontWeight: 'var(--font-weight-bold, 700)',
     lineHeight: 'var(--layout-line-height-leading-medium, 24px)',
-  };
-
-  const buttonsContainerStyles = {
-    display: 'flex',
-    gap: '8px',
-    marginTop: '16px',
   };
 
   const drawerStyles: CSSProperties = {
@@ -570,7 +549,14 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
   const feesAndRateContainerStyles = {
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
+    justifyContent: 'space-between',
+    width: '100%',
+    padding: '24px 16px 12px',
+    background: '#F5F7FA',
+    borderRadius: '0 0 12px 12px',
+    marginTop: '-12px',
+    position: 'relative' as const,
+    zIndex: 0,
   };
 
   const feesClickContainerStyles = {
@@ -581,7 +567,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
     fontSize: '14px',
     fontFamily: 'Inter, sans-serif',
     fontWeight: 500,
-    color: '#1E1E1E'
+    color: '#6B7280'  // Changed from '#1E1E1E' to '#6B7280' for grey color
   };
 
   const totalTextStyles = {
@@ -645,10 +631,10 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: '16px',
+    justifyContent: 'flex-start',
+    gap: '0px',  // Changed from '16px' to '0px'
     padding: '0 16px',
-    marginTop: '-24px',
+    marginTop: '24px',
   };
 
   const segmentedControlStyles = {
@@ -755,16 +741,18 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
     alignItems: 'flex-start',
     gap: '0px',
     alignSelf: 'stretch',
-    margin: '0 16px',
+    margin: '0',
     border: '1px solid #E5E7EB',
     borderRadius: '12px',
     background: '#FFFFFF',
     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    position: 'relative' as const,
+    zIndex: 1,
   };
 
   const inputSectionStyles = {
     display: 'flex',
-    padding: '12px',
+    padding: '16px 10px 16px 16px',  // Changed right padding from 16px to 10px
     flexDirection: 'row' as const,
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -776,7 +764,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
   const inputGroupStyles = {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '4px',
+    gap: '0px',
     flex: 1,
   };
 
@@ -791,7 +779,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
   const inputStyles = {
     color: '#1E1E1E',
     fontFamily: '"Satoshi Variable", system-ui, sans-serif',
-    fontSize: '24px',
+    fontSize: '32px',  // Changed from '24px' to '32px'
     fontWeight: 700,
     lineHeight: '32px',
     border: 'none',
@@ -803,15 +791,14 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
 
   const selectionButtonStyles = {
     display: 'flex',
-    padding: '8px 10px',
+    padding: '6px 2px 6px 6px',  // Reduced right and left padding
     alignItems: 'center',
-    gap: '4px',
+    gap: '2px',  // Reduced gap between elements
     borderRadius: '640px',
-    border: '1px solid #D2D9E5',
+    border: 'none',
     background: '#FFF',
-    boxShadow: '0px 2px 4px 0px rgba(30, 30, 30, 0.04)',
     cursor: 'pointer',
-    minWidth: '120px',
+    minWidth: '90px',  // Reduced minimum width
     justifyContent: 'space-between',
   };
 
@@ -889,6 +876,14 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
     return (processingFee + networkFee).toFixed(2);
   };
 
+  const buttonIconStyles = {
+    width: '20px',
+    height: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
   return (
     <div style={containerStyles}>
       <div style={navBarStyles}>
@@ -932,57 +927,96 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
         <div style={inputContainerStyles}>
           <div style={inputSectionStyles}>
             <div style={inputGroupStyles}>
-              <div style={inputLabelStyles}>You {mode === 'buy' ? 'pay' : 'receive'}</div>
+              <div style={inputLabelStyles}>
+                {mode === 'sell' ? (showTokenOnTop ? 'You sell' : 'You receive') : (showTokenOnTop ? 'You receive' : 'You pay')}
+              </div>
               <input
                 type="text"
-                value={inputValue}
+                value={showTokenOnTop ? assetValue : inputValue.replace(/[€$]/g, '')}
                 onChange={handleInputChange}
                 style={inputStyles}
-                placeholder={selectedCurrency === 'EUR' ? "€0" : "$0"}
+                placeholder="0"
               />
             </div>
             <button 
               style={selectionButtonStyles}
-              onClick={() => setIsDrawerOpen(true)}
+              onClick={() => showTokenOnTop ? setIsAssetDrawerOpen(true) : setIsDrawerOpen(true)}
             >
               <div style={buttonContentStyles}>
-                {selectedCurrency === 'EUR' ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 57 57" fill="none">
-                    <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#003399"/>
-                    <path d="M28.5 11L29.3247 13.7123H32.1962L29.9357 15.3754L30.7604 18.0877L28.5 16.4246L26.2396 18.0877L27.0643 15.3754L24.8038 13.7123H27.6753L28.5 11Z" fill="#FFDA44"/>
-                    <path d="M40.5 15L41.3247 17.7123H44.1962L41.9357 19.3754L42.7604 22.0877L40.5 20.4246L38.2396 22.0877L39.0643 19.3754L36.8038 17.7123H39.6753L40.5 15Z" fill="#FFDA44"/>
-                    <path d="M45 26.5L45.8247 29.2123H48.6962L46.4357 30.8754L47.2604 33.5877L45 31.9246L42.7396 33.5877L43.5643 30.8754L41.3038 29.2123H44.1753L45 26.5Z" fill="#FFDA44"/>
-                    <path d="M40.5 38L41.3247 40.7123H44.1962L41.9357 42.3754L42.7604 45.0877L40.5 43.4246L38.2396 45.0877L39.0643 42.3754L36.8038 40.7123H39.6753L40.5 38Z" fill="#FFDA44"/>
-                    <path d="M28.5 42L29.3247 44.7123H32.1962L29.9357 46.3754L30.7604 49.0877L28.5 47.4246L26.2396 49.0877L27.0643 46.3754L24.8038 44.7123H27.6753L28.5 42Z" fill="#FFDA44"/>
-                    <path d="M16.5 38L17.3247 40.7123H20.1962L17.9357 42.3754L18.7604 45.0877L16.5 43.4246L14.2396 45.0877L15.0643 42.3754L12.8038 40.7123H15.6753L16.5 38Z" fill="#FFDA44"/>
-                    <path d="M12 26.5L12.8247 29.2123H15.6962L13.4357 30.8754L14.2604 33.5877L12 31.9246L9.7396 33.5877L10.5643 30.8754L8.3038 29.2123H11.1753L12 26.5Z" fill="#FFDA44"/>
-                    <path d="M16.5 15L17.3247 17.7123H20.1962L17.9357 19.3754L18.7604 22.0877L16.5 20.4246L14.2396 22.0877L15.0643 19.3754L12.8038 17.7123H15.6753L16.5 15Z" fill="#FFDA44"/>
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 57 57" fill="none">
-                    <defs>
-                      <clipPath id="circle-mask">
-                        <circle cx="28.5" cy="28.5" r="28.5" />
-                      </clipPath>
-                    </defs>
-                    <circle cx="28.5" cy="28.5" r="28.5" fill="white"/>
-                    <g clipPath="url(#circle-mask)">
-                      <rect x="-10" y="6.65" width="77" height="5.32" fill="#D80027"/>
-                      <rect x="-10" y="17.29" width="77" height="5.32" fill="#D80027"/>
-                      <rect x="-10" y="27.93" width="77" height="5.32" fill="#D80027"/>
-                      <rect x="-10" y="38.57" width="77" height="5.32" fill="#D80027"/>
-                      <rect x="-10" y="49.21" width="77" height="5.32" fill="#D80027"/>
-                      <rect x="-10" y="11.97" width="77" height="5.32" fill="white"/>
-                      <rect x="-10" y="22.61" width="77" height="5.32" fill="white"/>
-                      <rect x="-10" y="33.25" width="77" height="5.32" fill="white"/>
-                      <rect x="-10" y="43.89" width="77" height="5.32" fill="white"/>
-                      <rect x="-10" y="-4" width="35" height="35" fill="#2E3560"/>
-                    </g>
-                  </svg>
-                )}
-                {selectedCurrency}
+                <div style={buttonIconStyles}>
+                  {showTokenOnTop ? (
+                    selectedAsset === 'BTC' ? (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#F7931A"/>
+                        <path d="M41.0305 24.6517C41.5839 20.9005 38.7671 18.884 34.9153 17.5389L36.1648 12.4575L33.114 11.6868L31.8976 16.6344C31.0956 16.4315 30.2719 16.2404 29.4533 16.051L30.6785 11.0707L27.6296 10.3L26.3794 15.3797C25.7157 15.2265 25.0638 15.0751 24.4314 14.9155L24.4349 14.8995L20.2278 13.8344L19.4162 17.1381C19.4162 17.1381 21.6797 17.6641 21.632 17.6965C22.8674 18.0091 23.0908 18.8383 23.0537 19.4955L21.6303 25.2844C21.7154 25.3063 21.8258 25.338 21.9475 25.3876C21.8457 25.362 21.7374 25.334 21.625 25.3067L19.63 33.4161C19.479 33.7967 19.0958 34.3678 18.232 34.1509C18.2626 34.1958 16.0147 33.5899 16.0147 33.5899L14.5 37.1306L18.4701 38.134C19.2087 38.3218 19.9325 38.5183 20.6452 38.7031L19.3828 43.8427L22.4301 44.6135L23.6803 39.5284C24.5128 39.7575 25.3207 39.9689 26.1116 40.1681L24.8656 45.2292L27.9165 46L29.1788 40.87C34.3811 41.8682 38.2928 41.4657 39.9393 36.6949C41.266 32.8538 39.8732 30.6383 37.1363 29.1935C39.1298 28.7274 40.6312 27.3981 41.0316 24.6521L41.0306 24.6514L41.0305 24.6517ZM34.0601 34.5618C33.1173 38.4029 26.7387 36.3265 24.6707 35.8058L26.346 28.9967C28.4139 29.5201 35.0455 30.5559 34.0603 34.5618H34.0601ZM35.0036 24.5961C34.1436 28.0899 28.8346 26.3149 27.1124 25.8796L28.6313 19.7041C30.3535 20.1394 35.8996 20.9517 35.0039 24.5961H35.0036Z" fill="white"/>
+                      </svg>
+                    ) : selectedAsset === 'ETH' ? (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <circle cx="28.5" cy="28.5" r="28.5" fill="#627EEA"/>
+                        <path d="M28.5 8v15.177l12.832 5.731L28.5 8Z" fill="#C0CBF6"/>
+                        <path d="M28.5 8 15.667 28.908l12.833-5.731V8Z" fill="white"/>
+                        <path d="M28.5 39.647v9.345l12.837-17.775L28.5 39.647Z" fill="#C0CBF6"/>
+                        <path d="m28.5 48.992v-9.345l-12.833-8.43L28.5 48.992Z" fill="white"/>
+                        <path d="m28.5 37.145 12.832-8.237-12.832-5.731v13.968Z" fill="#8197EE"/>
+                        <path d="m15.667 28.908 12.833 8.237V23.177l-12.833 5.731Z" fill="#C0CBF6"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <circle cx="28.5" cy="28.5" r="28.5" fill="#000000"/>
+                        <path d="M19.319 35.353a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#a)"/>
+                        <path d="M19.319 16.243a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#b)"/>
+                        <path d="M39.675 25.743a.832.832 0 0 0-.587-.243H13.86a.416.416 0 0 0-.294.71l5.166 5.166a.832.832 0 0 0 .587.243h25.228a.416.416 0 0 0 .294-.71l-5.166-5.166Z" fill="url(#c)"/>
+                        <defs>
+                          <linearGradient id="a" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
+                            <stop stopColor="#00FFA3"/>
+                            <stop offset="1" stopColor="#DC1FFF"/>
+                          </linearGradient>
+                          <linearGradient id="b" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
+                            <stop stopColor="#00FFA3"/>
+                            <stop offset="1" stopColor="#DC1FFF"/>
+                          </linearGradient>
+                          <linearGradient id="c" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
+                            <stop stopColor="#00FFA3"/>
+                            <stop offset="1" stopColor="#DC1FFF"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    )
+                  ) : (
+                    selectedCurrency === 'EUR' ? (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#003399"/>
+                        <path d="M28.5 11L29.3247 13.7123H32.1962L29.9357 15.3754L30.7604 18.0877L28.5 16.4246L26.2396 18.0877L27.0643 15.3754L24.8038 13.7123H27.6753L28.5 11Z" fill="#FFDA44"/>
+                        <path d="M40.5 15L41.3247 17.7123H44.1962L41.9357 19.3754L42.7604 22.0877L40.5 20.4246L38.2396 22.0877L39.0643 19.3754L36.8038 17.7123H39.6753L40.5 15Z" fill="#FFDA44"/>
+                        <path d="M45 26.5L45.8247 29.2123H48.6962L46.4357 30.8754L47.2604 33.5877L45 31.9246L42.7396 33.5877L43.5643 30.8754L41.3038 29.2123H44.1753L45 26.5Z" fill="#FFDA44"/>
+                        <path d="M40.5 38L41.3247 40.7123H44.1962L41.9357 42.3754L42.7604 45.0877L40.5 43.4246L38.2396 45.0877L39.0643 42.3754L36.8038 40.7123H39.6753L40.5 38Z" fill="#FFDA44"/>
+                        <path d="M28.5 42L29.3247 44.7123H32.1962L29.9357 46.3754L30.7604 49.0877L28.5 47.4246L26.2396 49.0877L27.0643 46.3754L24.8038 44.7123H27.6753L28.5 42Z" fill="#FFDA44"/>
+                        <path d="M16.5 38L17.3247 40.7123H20.1962L17.9357 42.3754L18.7604 45.0877L16.5 43.4246L14.2396 45.0877L15.0643 42.3754L12.8038 40.7123H15.6753L16.5 38Z" fill="#FFDA44"/>
+                        <path d="M12 26.5L12.8247 29.2123H15.6962L13.4357 30.8754L14.2604 33.5877L12 31.9246L9.7396 33.5877L10.5643 30.8754L8.3038 29.2123H11.1753L12 26.5Z" fill="#FFDA44"/>
+                        <path d="M16.5 15L17.3247 17.7123H20.1962L17.9357 19.3754L18.7604 22.0877L16.5 20.4246L14.2396 22.0877L15.0643 19.3754L12.8038 17.7123H15.6753L16.5 15Z" fill="#FFDA44"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <circle cx="28.5" cy="28.5" r="28.5" fill="white"/>
+                        <g clipPath="url(#circle-mask)">
+                          <rect x="-10" y="6.65" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="17.29" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="27.93" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="38.57" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="49.21" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="11.97" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="22.61" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="33.25" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="43.89" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="-4" width="35" height="35" fill="#2E3560"/>
+                        </g>
+                      </svg>
+                    )
+                  )}
+                </div>
+                {showTokenOnTop ? selectedAsset : selectedCurrency}
               </div>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M5 7.5L10 12.5L15 7.5" stroke="#1E1E1E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
@@ -990,170 +1024,107 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
           <div style={dividerStyles} />
           <div style={inputSectionStyles}>
             <div style={inputGroupStyles}>
-              <div style={inputLabelStyles}>You {mode === 'buy' ? 'receive' : 'pay'}</div>
+              <div style={inputLabelStyles}>
+                {mode === 'sell' ? (showTokenOnTop ? 'You receive' : 'You sell') : (showTokenOnTop ? 'You pay' : 'You receive')}
+              </div>
               <input
                 type="text"
-                value={`${assetValue} ${selectedAsset}`}
+                value={showTokenOnTop ? inputValue.replace(/[€$]/g, '') : assetValue}
                 onChange={handleInputChange}
                 style={inputStyles}
-                placeholder={`0 ${selectedAsset}`}
+                placeholder="0"
               />
             </div>
             <button 
               style={selectionButtonStyles}
-              onClick={() => setIsAssetDrawerOpen(true)}
+              onClick={() => showTokenOnTop ? setIsDrawerOpen(true) : setIsAssetDrawerOpen(true)}
             >
               <div style={buttonContentStyles}>
-                {selectedAsset === 'BTC' ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 57 57" fill="none">
-                    <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#F7931A"/>
-                    <path d="M41.0305 24.6517C41.5839 20.9005 38.7671 18.884 34.9153 17.5389L36.1648 12.4575L33.114 11.6868L31.8976 16.6344C31.0956 16.4315 30.2719 16.2404 29.4533 16.051L30.6785 11.0707L27.6296 10.3L26.3794 15.3797C25.7157 15.2265 25.0638 15.0751 24.4314 14.9155L24.4349 14.8995L20.2278 13.8344L19.4162 17.1381C19.4162 17.1381 21.6797 17.6641 21.632 17.6965C22.8674 18.0091 23.0908 18.8383 23.0537 19.4955L21.6303 25.2844C21.7154 25.3063 21.8258 25.338 21.9475 25.3876C21.8457 25.362 21.7374 25.334 21.625 25.3067L19.63 33.4161C19.479 33.7967 19.0958 34.3678 18.232 34.1509C18.2626 34.1958 16.0147 33.5899 16.0147 33.5899L14.5 37.1306L18.4701 38.134C19.2087 38.3218 19.9325 38.5183 20.6452 38.7031L19.3828 43.8427L22.4301 44.6135L23.6803 39.5284C24.5128 39.7575 25.3207 39.9689 26.1116 40.1681L24.8656 45.2292L27.9165 46L29.1788 40.87C34.3811 41.8682 38.2928 41.4657 39.9393 36.6949C41.266 32.8538 39.8732 30.6383 37.1363 29.1935C39.1298 28.7274 40.6312 27.3981 41.0316 24.6521L41.0306 24.6514L41.0305 24.6517ZM34.0601 34.5618C33.1173 38.4029 26.7387 36.3265 24.6707 35.8058L26.346 28.9967C28.4139 29.5201 35.0455 30.5559 34.0603 34.5618H34.0601ZM35.0036 24.5961C34.1436 28.0899 28.8346 26.3149 27.1124 25.8796L28.6313 19.7041C30.3535 20.1394 35.8996 20.9517 35.0039 24.5961H35.0036Z" fill="white"/>
-                  </svg>
-                ) : selectedAsset === 'ETH' ? (
-                  <svg width="20" height="20" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="28.5" cy="28.5" r="28.5" fill="#627EEA"/>
-                    <path d="M28.5 8v15.177l12.832 5.731L28.5 8Z" fill="#C0CBF6"/>
-                    <path d="M28.5 8 15.667 28.908l12.833-5.731V8Z" fill="white"/>
-                    <path d="M28.5 39.647v9.345l12.837-17.775L28.5 39.647Z" fill="#C0CBF6"/>
-                    <path d="m28.5 48.992v-9.345l-12.833-8.43L28.5 48.992Z" fill="white"/>
-                    <path d="m28.5 37.145 12.832-8.237-12.832-5.731v13.968Z" fill="#8197EE"/>
-                    <path d="m15.667 28.908 12.833 8.237V23.177l-12.833 5.731Z" fill="#C0CBF6"/>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="28.5" cy="28.5" r="28.5" fill="#000000"/>
-                    <path d="M19.319 35.353a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#a)"/>
-                    <path d="M19.319 16.243a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#b)"/>
-                    <path d="M39.675 25.743a.832.832 0 0 0-.587-.243H13.86a.416.416 0 0 0-.294.71l5.166 5.166a.832.832 0 0 0 .587.243h25.228a.416.416 0 0 0 .294-.71l-5.166-5.166Z" fill="url(#c)"/>
-                    <defs>
-                      <linearGradient id="a" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#00FFA3"/>
-                        <stop offset="1" stopColor="#DC1FFF"/>
-                      </linearGradient>
-                      <linearGradient id="b" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#00FFA3"/>
-                        <stop offset="1" stopColor="#DC1FFF"/>
-                      </linearGradient>
-                      <linearGradient id="c" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#00FFA3"/>
-                        <stop offset="1" stopColor="#DC1FFF"/>
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                )}
-                {selectedAsset}
+                <div style={buttonIconStyles}>
+                  {!showTokenOnTop ? (
+                    selectedAsset === 'BTC' ? (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#F7931A"/>
+                        <path d="M41.0305 24.6517C41.5839 20.9005 38.7671 18.884 34.9153 17.5389L36.1648 12.4575L33.114 11.6868L31.8976 16.6344C31.0956 16.4315 30.2719 16.2404 29.4533 16.051L30.6785 11.0707L27.6296 10.3L26.3794 15.3797C25.7157 15.2265 25.0638 15.0751 24.4314 14.9155L24.4349 14.8995L20.2278 13.8344L19.4162 17.1381C19.4162 17.1381 21.6797 17.6641 21.632 17.6965C22.8674 18.0091 23.0908 18.8383 23.0537 19.4955L21.6303 25.2844C21.7154 25.3063 21.8258 25.338 21.9475 25.3876C21.8457 25.362 21.7374 25.334 21.625 25.3067L19.63 33.4161C19.479 33.7967 19.0958 34.3678 18.232 34.1509C18.2626 34.1958 16.0147 33.5899 16.0147 33.5899L14.5 37.1306L18.4701 38.134C19.2087 38.3218 19.9325 38.5183 20.6452 38.7031L19.3828 43.8427L22.4301 44.6135L23.6803 39.5284C24.5128 39.7575 25.3207 39.9689 26.1116 40.1681L24.8656 45.2292L27.9165 46L29.1788 40.87C34.3811 41.8682 38.2928 41.4657 39.9393 36.6949C41.266 32.8538 39.8732 30.6383 37.1363 29.1935C39.1298 28.7274 40.6312 27.3981 41.0316 24.6521L41.0306 24.6514L41.0305 24.6517ZM34.0601 34.5618C33.1173 38.4029 26.7387 36.3265 24.6707 35.8058L26.346 28.9967C28.4139 29.5201 35.0455 30.5559 34.0603 34.5618H34.0601ZM35.0036 24.5961C34.1436 28.0899 28.8346 26.3149 27.1124 25.8796L28.6313 19.7041C30.3535 20.1394 35.8996 20.9517 35.0039 24.5961H35.0036Z" fill="white"/>
+                      </svg>
+                    ) : selectedAsset === 'ETH' ? (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <circle cx="28.5" cy="28.5" r="28.5" fill="#627EEA"/>
+                        <path d="M28.5 8v15.177l12.832 5.731L28.5 8Z" fill="#C0CBF6"/>
+                        <path d="M28.5 8 15.667 28.908l12.833-5.731V8Z" fill="white"/>
+                        <path d="M28.5 39.647v9.345l12.837-17.775L28.5 39.647Z" fill="#C0CBF6"/>
+                        <path d="m28.5 48.992v-9.345l-12.833-8.43L28.5 48.992Z" fill="white"/>
+                        <path d="m28.5 37.145 12.832-8.237-12.832-5.731v13.968Z" fill="#8197EE"/>
+                        <path d="m15.667 28.908 12.833 8.237V23.177l-12.833 5.731Z" fill="#C0CBF6"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <circle cx="28.5" cy="28.5" r="28.5" fill="#000000"/>
+                        <path d="M19.319 35.353a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#a)"/>
+                        <path d="M19.319 16.243a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#b)"/>
+                        <path d="M39.675 25.743a.832.832 0 0 0-.587-.243H13.86a.416.416 0 0 0-.294.71l5.166 5.166a.832.832 0 0 0 .587.243h25.228a.416.416 0 0 0 .294-.71l-5.166-5.166Z" fill="url(#c)"/>
+                        <defs>
+                          <linearGradient id="a" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
+                            <stop stopColor="#00FFA3"/>
+                            <stop offset="1" stopColor="#DC1FFF"/>
+                          </linearGradient>
+                          <linearGradient id="b" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
+                            <stop stopColor="#00FFA3"/>
+                            <stop offset="1" stopColor="#DC1FFF"/>
+                          </linearGradient>
+                          <linearGradient id="c" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
+                            <stop stopColor="#00FFA3"/>
+                            <stop offset="1" stopColor="#DC1FFF"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    )
+                  ) : (
+                    selectedCurrency === 'EUR' ? (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#003399"/>
+                        <path d="M28.5 11L29.3247 13.7123H32.1962L29.9357 15.3754L30.7604 18.0877L28.5 16.4246L26.2396 18.0877L27.0643 15.3754L24.8038 13.7123H27.6753L28.5 11Z" fill="#FFDA44"/>
+                        <path d="M40.5 15L41.3247 17.7123H44.1962L41.9357 19.3754L42.7604 22.0877L40.5 20.4246L38.2396 22.0877L39.0643 19.3754L36.8038 17.7123H39.6753L40.5 15Z" fill="#FFDA44"/>
+                        <path d="M45 26.5L45.8247 29.2123H48.6962L46.4357 30.8754L47.2604 33.5877L45 31.9246L42.7396 33.5877L43.5643 30.8754L41.3038 29.2123H44.1753L45 26.5Z" fill="#FFDA44"/>
+                        <path d="M40.5 38L41.3247 40.7123H44.1962L41.9357 42.3754L42.7604 45.0877L40.5 43.4246L38.2396 45.0877L39.0643 42.3754L36.8038 40.7123H39.6753L40.5 38Z" fill="#FFDA44"/>
+                        <path d="M28.5 42L29.3247 44.7123H32.1962L29.9357 46.3754L30.7604 49.0877L28.5 47.4246L26.2396 49.0877L27.0643 46.3754L24.8038 44.7123H27.6753L28.5 42Z" fill="#FFDA44"/>
+                        <path d="M16.5 38L17.3247 40.7123H20.1962L17.9357 42.3754L18.7604 45.0877L16.5 43.4246L14.2396 45.0877L15.0643 42.3754L12.8038 40.7123H15.6753L16.5 38Z" fill="#FFDA44"/>
+                        <path d="M12 26.5L12.8247 29.2123H15.6962L13.4357 30.8754L14.2604 33.5877L12 31.9246L9.7396 33.5877L10.5643 30.8754L8.3038 29.2123H11.1753L12 26.5Z" fill="#FFDA44"/>
+                        <path d="M16.5 15L17.3247 17.7123H20.1962L17.9357 19.3754L18.7604 22.0877L16.5 20.4246L14.2396 22.0877L15.0643 19.3754L12.8038 17.7123H15.6753L16.5 15Z" fill="#FFDA44"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 57 57" fill="none">
+                        <circle cx="28.5" cy="28.5" r="28.5" fill="white"/>
+                        <g clipPath="url(#circle-mask)">
+                          <rect x="-10" y="6.65" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="17.29" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="27.93" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="38.57" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="49.21" width="77" height="5.32" fill="#D80027"/>
+                          <rect x="-10" y="11.97" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="22.61" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="33.25" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="43.89" width="77" height="5.32" fill="white"/>
+                          <rect x="-10" y="-4" width="35" height="35" fill="#2E3560"/>
+                        </g>
+                      </svg>
+                    )
+                  )}
+                </div>
+                {!showTokenOnTop ? selectedAsset : selectedCurrency}
               </div>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M5 7.5L10 12.5L15 7.5" stroke="#1E1E1E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
         </div>
-      </div>
-      <div style={buttonsContainerStyles}>
-        <button 
-          style={{ ...buttonStyles, ...buttonTextStyles }}
-          onClick={() => setIsAssetDrawerOpen(true)}
-        >
-          <div style={buttonContentStyles}>
-            {selectedAsset === 'BTC' ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 57 57" fill="none">
-                <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#F7931A"/>
-                <path d="M41.0305 24.6517C41.5839 20.9005 38.7671 18.884 34.9153 17.5389L36.1648 12.4575L33.114 11.6868L31.8976 16.6344C31.0956 16.4315 30.2719 16.2404 29.4533 16.051L30.6785 11.0707L27.6296 10.3L26.3794 15.3797C25.7157 15.2265 25.0638 15.0751 24.4314 14.9155L24.4349 14.8995L20.2278 13.8344L19.4162 17.1381C19.4162 17.1381 21.6797 17.6641 21.632 17.6965C22.8674 18.0091 23.0908 18.8383 23.0537 19.4955L21.6303 25.2844C21.7154 25.3063 21.8258 25.338 21.9475 25.3876C21.8457 25.362 21.7374 25.334 21.625 25.3067L19.63 33.4161C19.479 33.7967 19.0958 34.3678 18.232 34.1509C18.2626 34.1958 16.0147 33.5899 16.0147 33.5899L14.5 37.1306L18.4701 38.134C19.2087 38.3218 19.9325 38.5183 20.6452 38.7031L19.3828 43.8427L22.4301 44.6135L23.6803 39.5284C24.5128 39.7575 25.3207 39.9689 26.1116 40.1681L24.8656 45.2292L27.9165 46L29.1788 40.87C34.3811 41.8682 38.2928 41.4657 39.9393 36.6949C41.266 32.8538 39.8732 30.6383 37.1363 29.1935C39.1298 28.7274 40.6312 27.3981 41.0316 24.6521L41.0306 24.6514L41.0305 24.6517ZM34.0601 34.5618C33.1173 38.4029 26.7387 36.3265 24.6707 35.8058L26.346 28.9967C28.4139 29.5201 35.0455 30.5559 34.0603 34.5618H34.0601ZM35.0036 24.5961C34.1436 28.0899 28.8346 26.3149 27.1124 25.8796L28.6313 19.7041C30.3535 20.1394 35.8996 20.9517 35.0039 24.5961H35.0036Z" fill="white"/>
-              </svg>
-            ) : selectedAsset === 'ETH' ? (
-              <svg width="20" height="20" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="28.5" cy="28.5" r="28.5" fill="#627EEA"/>
-                <path d="M28.5 8v15.177l12.832 5.731L28.5 8Z" fill="#C0CBF6"/>
-                <path d="M28.5 8 15.667 28.908l12.833-5.731V8Z" fill="white"/>
-                <path d="M28.5 39.647v9.345l12.837-17.775L28.5 39.647Z" fill="#C0CBF6"/>
-                <path d="m28.5 48.992v-9.345l-12.833-8.43L28.5 48.992Z" fill="white"/>
-                <path d="m28.5 37.145 12.832-8.237-12.832-5.731v13.968Z" fill="#8197EE"/>
-                <path d="m15.667 28.908 12.833 8.237V23.177l-12.833 5.731Z" fill="#C0CBF6"/>
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="28.5" cy="28.5" r="28.5" fill="#000000"/>
-                <path d="M19.319 35.353a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#a)"/>
-                <path d="M19.319 16.243a.832.832 0 0 1 .587-.243h25.228a.416.416 0 0 1 .294.71l-5.166 5.166a.832.832 0 0 1-.587.243H14.447a.416.416 0 0 1-.294-.71l5.166-5.166Z" fill="url(#b)"/>
-                <path d="M39.675 25.743a.832.832 0 0 0-.587-.243H13.86a.416.416 0 0 0-.294.71l5.166 5.166a.832.832 0 0 0 .587.243h25.228a.416.416 0 0 0 .294-.71l-5.166-5.166Z" fill="url(#c)"/>
-                <defs>
-                  <linearGradient id="a" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#00FFA3"/>
-                    <stop offset="1" stopColor="#DC1FFF"/>
-                  </linearGradient>
-                  <linearGradient id="b" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#00FFA3"/>
-                    <stop offset="1" stopColor="#DC1FFF"/>
-                  </linearGradient>
-                  <linearGradient id="c" x1="42.766" y1="14.657" x2="23.986" y2="48.491" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#00FFA3"/>
-                    <stop offset="1" stopColor="#DC1FFF"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            )}
-            {mode === 'buy' ? 'Buy ' : 'Sell '}{selectedAsset}
-          </div>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 7.5L10 12.5L15 7.5" stroke="#1E1E1E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <button 
-          style={{ ...buttonStyles, ...buttonTextStyles }}
-          onClick={() => setIsDrawerOpen(true)}
-        >
-          <div style={buttonContentStyles}>
-            {selectedCurrency === 'EUR' ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 57 57" fill="none">
-                <path d="M55.6622 35.2733C51.9222 50.2735 36.7278 59.4023 21.7241 55.6617C6.72681 51.9221 -2.40301 36.7284 1.33865 21.7295C5.07704 6.72773 20.2715 -2.40175 35.2704 1.33786C50.273 5.07746 59.4022 20.2728 55.6618 35.2736L55.6621 35.2733H55.6622Z" fill="#003399"/>
-                <path d="M28.5 11L29.3247 13.7123H32.1962L29.9357 15.3754L30.7604 18.0877L28.5 16.4246L26.2396 18.0877L27.0643 15.3754L24.8038 13.7123H27.6753L28.5 11Z" fill="#FFDA44"/>
-                <path d="M40.5 15L41.3247 17.7123H44.1962L41.9357 19.3754L42.7604 22.0877L40.5 20.4246L38.2396 22.0877L39.0643 19.3754L36.8038 17.7123H39.6753L40.5 15Z" fill="#FFDA44"/>
-                <path d="M45 26.5L45.8247 29.2123H48.6962L46.4357 30.8754L47.2604 33.5877L45 31.9246L42.7396 33.5877L43.5643 30.8754L41.3038 29.2123H44.1753L45 26.5Z" fill="#FFDA44"/>
-                <path d="M40.5 38L41.3247 40.7123H44.1962L41.9357 42.3754L42.7604 45.0877L40.5 43.4246L38.2396 45.0877L39.0643 42.3754L36.8038 40.7123H39.6753L40.5 38Z" fill="#FFDA44"/>
-                <path d="M28.5 42L29.3247 44.7123H32.1962L29.9357 46.3754L30.7604 49.0877L28.5 47.4246L26.2396 49.0877L27.0643 46.3754L24.8038 44.7123H27.6753L28.5 42Z" fill="#FFDA44"/>
-                <path d="M16.5 38L17.3247 40.7123H20.1962L17.9357 42.3754L18.7604 45.0877L16.5 43.4246L14.2396 45.0877L15.0643 42.3754L12.8038 40.7123H15.6753L16.5 38Z" fill="#FFDA44"/>
-                <path d="M12 26.5L12.8247 29.2123H15.6962L13.4357 30.8754L14.2604 33.5877L12 31.9246L9.7396 33.5877L10.5643 30.8754L8.3038 29.2123H11.1753L12 26.5Z" fill="#FFDA44"/>
-                <path d="M16.5 15L17.3247 17.7123H20.1962L17.9357 19.3754L18.7604 22.0877L16.5 20.4246L14.2396 22.0877L15.0643 19.3754L12.8038 17.7123H15.6753L16.5 15Z" fill="#FFDA44"/>
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 57 57" fill="none">
-                <defs>
-                  <clipPath id="circle-mask">
-                    <circle cx="28.5" cy="28.5" r="28.5" />
-                  </clipPath>
-                </defs>
-                <circle cx="28.5" cy="28.5" r="28.5" fill="white"/>
-                <g clipPath="url(#circle-mask)">
-                  <rect x="-10" y="6.65" width="77" height="5.32" fill="#D80027"/>
-                  <rect x="-10" y="17.29" width="77" height="5.32" fill="#D80027"/>
-                  <rect x="-10" y="27.93" width="77" height="5.32" fill="#D80027"/>
-                  <rect x="-10" y="38.57" width="77" height="5.32" fill="#D80027"/>
-                  <rect x="-10" y="49.21" width="77" height="5.32" fill="#D80027"/>
-                  <rect x="-10" y="11.97" width="77" height="5.32" fill="white"/>
-                  <rect x="-10" y="22.61" width="77" height="5.32" fill="white"/>
-                  <rect x="-10" y="33.25" width="77" height="5.32" fill="white"/>
-                  <rect x="-10" y="43.89" width="77" height="5.32" fill="white"/>
-                  <rect x="-10" y="-4" width="35" height="35" fill="#2E3560"/>
-                </g>
-              </svg>
-            )}
-            {mode === 'buy' ? 'Pay in ' : 'Payout in '}{selectedCurrency}
-          </div>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 7.5L10 12.5L15 7.5" stroke="#1E1E1E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
-      <div style={cardFooterStyles}>
-        <div style={feesTextContainerStyles}>
-          <div style={feesAndRateContainerStyles}>
-            <div style={feesClickContainerStyles} onClick={() => setIsFeesDrawerOpen(true)}>
-              Fees included
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 7.5L10 12.5L15 7.5" stroke="#1E1E1E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+        <div style={feesAndRateContainerStyles}>
+          <div style={feesClickContainerStyles} onClick={() => setIsFeesDrawerOpen(true)}>
+            Fees included
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7.5L10 12.5L15 7.5" stroke="#6B7280" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
           <div style={exchangeRateStyles}>
             1 {selectedAsset} = {selectedCurrency === 'EUR' ? '€' : '$'}{(selectedCurrency === 'USD' ? 
@@ -1162,6 +1133,8 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
              ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
+      </div>
+      <div style={cardFooterStyles}>
         <button 
           style={footerButtonStyles}
           onClick={handleContinue}

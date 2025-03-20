@@ -68,7 +68,7 @@ const Status: React.FC = () => {
 
   const containerStyles = {
     width: '393px',
-    height: '777px',
+    height: '677px',
     backgroundColor: '#ffffff',
     borderRadius: '16px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
@@ -314,7 +314,8 @@ const Status: React.FC = () => {
     left: 0,
     right: 0,
     bottom: 0,
-    margin: 0
+    margin: 0,
+    overflow: 'auto'
   };
 
   const timelineContainerStyles = {
